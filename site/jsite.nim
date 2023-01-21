@@ -5,10 +5,10 @@ include karax/prelude
 proc interpret(f: kstring): kstring =
    try:
      let a = parse($(f))
-     a.ensureSemantics()
-     let res = a.interpret("<Unnamed>")
-     if res.failed:
-       result.add res.msg
+     # a.ensureSemantics()
+     # let res = a.interpret("<Unnamed>")
+     # if res.failed:
+       # result.add res.msg
    except CatchableError as e:
      result.add e.msg
 
