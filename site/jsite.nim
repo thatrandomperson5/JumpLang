@@ -1,3 +1,4 @@
+#[
 # import libjumplang/[ast, interpreter, parser, syms]
 include karax/prelude 
 
@@ -18,10 +19,26 @@ proc createDom(): VNode =
     button:
       text "Run"
       proc onclick(ev: Event; n: VNode) =
-        alert("Hello")
         getVNodeById("output").text = "Working...\n"
         # let res = interpret(getVNodeById("input").text)
         # getVNodeById("output").add text res
         getVNodeById("output").add text "Finished"
+
+setRenderer createDom
+]#
+
+include karax / prelude
+
+var lines: seq[kstring] = @[]
+
+proc createDom(): VNode =
+  result = buildHtml(tdiv):
+    button:
+      text "Say hello!"
+      proc onclick(ev: Event; n: VNode) =
+        lines.add "Hello simulated universe"
+    for x in lines:
+      tdiv:
+        text x
 
 setRenderer createDom
