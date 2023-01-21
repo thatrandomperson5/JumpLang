@@ -17,7 +17,8 @@ var o: kstring = ""
 proc createDom(): VNode = 
   buildHtml(tdiv):
     textarea(width="100", placeholder="Code here", id="input")
-    textarea(readonly="true", width="100", placeholder="Output", id="output", text=o)
+    textarea(readonly="true", width="100", placeholder="Output", id="output"):
+      text o
     button:
       text "Run"
       proc onclick(ev: Event; n: VNode) =
