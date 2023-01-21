@@ -1,16 +1,16 @@
 
-# import libjumplang/[ast, interpreter, parser, syms]
+import libjumplang/[ast, interpreter, parser, syms]
 include karax/prelude 
 
-# proc interpret(f: kstring): kstring =
-#   try:
-#     let a = parse($(f))
-#     a.ensureSemantics()
-#     let res = a.interpret("<Unnamed>")
-#     if res.failed:
-#       result.add res.msg
-#   except CatchableError as e:
-#     result.add e.msg
+proc interpret(f: kstring): kstring =
+   try:
+     let a = parse($(f))
+     a.ensureSemantics()
+     let res = a.interpret("<Unnamed>")
+     if res.failed:
+       result.add res.msg
+   except CatchableError as e:
+     result.add e.msg
 
 var o: kstring = ""
 
