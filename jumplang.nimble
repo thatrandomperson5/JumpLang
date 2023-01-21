@@ -19,6 +19,6 @@ task test, "Test the interpreter.":
   exec "./jumplang tests/test.jmp"
 
 task site, "Make the website.":
-  exec "nimble install --depsOnly"
+  exec "nimble install --depsOnly -y"
   exec "nim js -o:site/app.js site/jsite"
   exec "cd site && sh closure.sh"
