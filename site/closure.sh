@@ -1,4 +1,4 @@
-if command -v java &> /dev/null
+if false # command -v java &> /dev/null
 then
   if [ ! -f "./compiler.jar" ]; then
     echo "Installing deps"
