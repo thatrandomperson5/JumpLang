@@ -35,8 +35,11 @@ jobs:
         uses: jiro4989/setup-nim-action@v1
         with: 
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: build
-        run: nimble site
+        run: |
+          nimble install karax
+          nimble site
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact
