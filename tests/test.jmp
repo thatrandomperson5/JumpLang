@@ -1,0 +1,15 @@
+func counto(max):
+  i = 0
+  flag myloop: # Flag to jump back to
+    echo i
+    i = i + 1
+    if i <= max:
+      jump myloop
+
+w = "world"
+if true:
+  echo "hello", w
+
+echo "From jumplang"
+
+counto(5)
