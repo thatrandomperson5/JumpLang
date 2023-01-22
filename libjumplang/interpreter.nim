@@ -36,6 +36,25 @@ type
     msg*: string
     stack*: CallStack
 
+proc `$`*(ar: ActivationRecord): string =
+  result.add "Name: " & ar.name & "\n"
+  result.add "Type: " & $(ar.typ) & "\n"
+  result.add "Lvl: " & $(ar.lvl) & "\n"
+  result.add "Data: "
+  for key, value in ar.data:
+    result.add key & ": " & $(value[]) & "\n"
+
+proc ensureStr*(obj: JlObj): string =
+  case obj.kind
+  of NativeInt:
+    return $(obj.i)
+  of NativeStr:
+    return $(obj.s)
+  of NativeBool:
+    return $(obj.b)
+  else:
+    discard
+
 proc expectKind(o: JlObj, k: JlObjKind) =
   if o.kind != k:
     raise newException(NativeTypeError, "Got wrong kind")
@@ -82,13 +101,13 @@ proc visit(i: var Interpreter, n: JlNode): JlObj =
     var ar = ActivationRecord(name: ident, typ: Function, lvl: i.v.lvl+1)
     i.stack.add ar
     when defined(jlDebugIt):
-      echo "Entering: ", ar[]
+      echo "Entering: ", ar.name
     for index, item in f.params:
       i[item] = i.visit(n[1][index])
     discard i.visit(f.body)
     discard i.stack.pop
     when defined(jlDebugIt):
-      echo "Exiting: ", ar[]
+      echo $ar
   of IfStmt:
     let cond = i.visit(n[0])
     if cond.b:
@@ -102,23 +121,27 @@ proc visit(i: var Interpreter, n: JlNode): JlObj =
     visitOp()
   else: 
     if n.kind in lsSet:
-      echo "Sending: ", n.kind
       for child in n:
         discard i.visit(child)
+    else:
+      when defined(js):
+        output.add "Warning: Unhandled Stmt: " & $n & "\n"
+      else:
+        echo "Warning: Unhandled Stmt: " & $n & "\n"
 
 proc interpret*(n: JlNode, name: string): InterpreterResult =
   var i = Interpreter(tree: n) 
   var ar = ActivationRecord(name: name, typ: Global, lvl: 1)
   result = InterpreterResult(failed: false)
   when defined(jlDebugIt):
-    echo "Entering: ", ar[]
+    echo "Entering: ", ar.name
   i.stack.add ar
   try:
     discard i.visit(n)
-  except CatchableError as e:
+  except NativeTypeError as e:
     result.failed = true
     result.msg = e.msg
     result.stack = i.stack
   when defined(jlDebugIt):
-    echo "Exiting: ", ar[]
+    echo "Exiting: ", $ar
   discard i.stack.pop

@@ -11,13 +11,13 @@ proc interpret(f: kstring): kstring =
     if res.failed:
        result.add res.msg
   except CatchableError as e:
-     result.add e.msg
+     result.add e.msg & '\n'
 
 var o: kstring = ""
 
 proc createDom(): VNode = 
   buildHtml(tdiv):
-    textarea(width="100", placeholder="Code here", id="input")
+    tdiv(style="width: 100;", id="input")
     textarea(readonly="true", width="100", placeholder="Output", id="output"):
       text o
     button:

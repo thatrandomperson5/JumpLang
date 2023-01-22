@@ -53,14 +53,14 @@ template visitKw*(): untyped =
   case n[0].getStr:
   of "echo":
     var s = ""
-    for arg in n[0]:
-      s.add i.visit(arg).s & " "
+    for arg in n[1]:
+      s.add i.visit(arg).ensureStr & " "
     when defined(js):
       output.add s & '\n'
     else:
       echo s
   of "jump":
-    let ident = n[0].getStr
+    let ident = n[1][0].getStr
     let f = i[ident]
     f.expectKind(FlagBlock)
     discard i.visit(f.internal)

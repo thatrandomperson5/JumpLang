@@ -88,7 +88,6 @@ proc `[]`*(node: JlNode, i: int): JlNode =
   return node.list[i]
 
 iterator items*(n: JlNode): JlNode = 
-  echo "Got: ", n.kind
   n.expectKind lsSet
   for item in n.list:
     yield item
