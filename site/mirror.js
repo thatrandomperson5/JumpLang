@@ -1,9 +1,10 @@
-new EditorView({
-  doc: 'console.log("hello")',
-  extensions: [
-    basicSetup,
-    languageConf.of(javascript()),
-    autoLanguage
-  ],
-  parent: document.querySelector("#input")
-})
+
+function makeMirror(id) {
+  new EditorView({
+    doc: 'console.log("hello")',
+    extensions: [
+      basicSetup,
+    ],
+    parent: document.querySelector(id)
+  })
+}

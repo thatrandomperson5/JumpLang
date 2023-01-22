@@ -15,8 +15,10 @@ proc interpret(f: kstring): kstring =
 
 var o: kstring = ""
 
+proc makeMirror(query: kstring = "#input") {.importcpp: "makeMirror(#)".}
+
 proc createDom(): VNode = 
-  buildHtml(tdiv):
+  result = buildHtml(tdiv):
     tdiv(style=style(StyleAttr.width, "100%"), id="input")
     textarea(readonly="true", width="100", placeholder="Output", id="output"):
       text o
@@ -28,6 +30,7 @@ proc createDom(): VNode =
         let res = interpret(code)
         o.add res
         o.add "Finished"
+  makeMirror() 
 
 setRenderer createDom
 
