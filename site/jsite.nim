@@ -68,7 +68,7 @@ proc createDom(): VNode =
           let res = interpret(code)
           o.add res
           o.add "Finished"
-    select(name="Examples" onchange=fillExample):
+    select(name="Examples", onchange=fillExample):
       for name in exampleOpts:
         option: text name
         
