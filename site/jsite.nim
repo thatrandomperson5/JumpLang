@@ -23,7 +23,7 @@ proc createDom(): VNode =
       text "Run"
       proc onclick(ev: Event; n: VNode) =
         o = "Working...\n"
-        let code = getVNodeById("input").text
+        let code = getVNodeById("input").getInputText()
         let res = interpret(code)
         o.add res
         o.add "Finished"
