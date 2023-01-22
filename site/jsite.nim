@@ -1,5 +1,5 @@
 
-import libjumplang/[ast, interpreter, parser, syms]
+import libjumplang/[ast, parser] # interpreter, syms
 include karax/prelude 
 
 proc interpret(f: kstring): kstring =

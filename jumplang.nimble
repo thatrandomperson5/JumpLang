@@ -20,5 +20,5 @@ task test, "Test the interpreter.":
 
 task site, "Make the website.":
   exec "nimble install --depsOnly -y"
-  exec "nim js -o:site/app.js site/jsite"
+  exec "nim js -d:release --opt:speed -o:site/app.js site/jsite"
   exec "cd site && sh closure.sh"
