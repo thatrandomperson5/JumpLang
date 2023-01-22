@@ -55,7 +55,7 @@ proc fillExample(ev: Event, n: VNode) =
   myCodeMirror.setValue(txt)
 
 proc createDom(): VNode = 
-  let exampleOpts = ["Hello World", "Loops"]
+  let exampleOpts = ["None", "Hello World", "Loops"]
   result = buildHtml(tdiv):
     h1:
       text "JumpLang Web Interpreter"
