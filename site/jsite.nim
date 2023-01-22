@@ -27,7 +27,7 @@ proc getValue(cm: CodeMirror): kstring {.importcpp: "#.getValue()".}
 proc postRender() =
   if myCodeMirror.Element == nil:
     myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
-      mode: "text/html".kstring,
+      mode: "text/python".kstring,
       value: "".kstring,
       lineNumbers: true,
     })
