@@ -21,11 +21,19 @@ proc makeMirror(query: kstring) {.importcpp: "makeMirror(#)".}
 proc postRender() =
   makeMirror("#input")
 
+let boxStyle = style(
+  StyleAttr.width, "100%",
+  StyleAttr.borderStyle, "solid",
+  StyleAttr.borderWidth, "1px",
+  StyleAttr.borderColor, "--highlight"
+)
+
 proc createDom(): VNode = 
   result = buildHtml(tdiv):
-    tdiv(style=style(StyleAttr.width, "100%"), id="input")
-    textarea(readonly="true", width="100", placeholder="Output", id="output"):
-      text o
+    tdiv(style=boxStyle, class=@["codebox"], id="input")
+    code(style=boxStyle):
+      pre:
+        text o
     button:
       text "Run"
       proc onclick(ev: Event; n: VNode) =
