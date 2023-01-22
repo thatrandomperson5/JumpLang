@@ -1,6 +1,8 @@
 
 import libjumplang/[ast, parser, interpreter, syms]
-include karax/[prelude, vstyles]
+include karax/prelude
+import karax/[vstyles, kdom]
+import jsffi except `&`
 
 
 proc interpret(f: kstring): kstring =
@@ -15,17 +17,24 @@ proc interpret(f: kstring): kstring =
      result.add e.msg & '\n'
 
 var o: kstring = ""
+type CodeMirror = distinct Element
+var myCodeMirror: CodeMirror
 
-proc makeMirror(query: kstring) {.importcpp: "makeMirror(#)".}
+proc newCodeMirror(element: Element, config: js): CodeMirror {. importcpp: "CodeMirror(@)" .}
+proc setValue(cm: CodeMirror, value: kstring) {.importcpp: "#.setValue(@)".}
+proc getValue(cm: CodeMirror): kstring {.importcpp: "#.getValue()".}
 
 proc postRender() =
-  makeMirror("#input")
+  myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
+    mode: "text/html".kstring,
+    value: "".kstring,
+  })
 
 let boxStyle = style(
-  (StyleAttr.width, "100%"),
-  (StyleAttr.borderStyle, "solid"),
-  (StyleAttr.borderWidth, "1px"),
-  (StyleAttr.borderColor, "--highlight")
+  (StyleAttr.width, "100%".kstring),
+  (StyleAttr.borderStyle, "solid".kstring),
+  (StyleAttr.borderWidth, "1px".kstring),
+  (StyleAttr.borderColor, "--highlight".kstring)
 )
 
 proc createDom(): VNode = 
@@ -38,7 +47,7 @@ proc createDom(): VNode =
       text "Run"
       proc onclick(ev: Event; n: VNode) =
         o = "Working...\n"
-        let code = getVNodeById("input").getInputText()
+        let code = myCodeMirror.getValue()
         let res = interpret(code)
         o.add res
         o.add "Finished"
