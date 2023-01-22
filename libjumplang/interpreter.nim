@@ -53,7 +53,7 @@ proc v(i: Interpreter): ActivationRecord = i.stack[^1]
 proc `[]=`(i: Interpreter, key: string, v: JlObj) = i.stack[^1].data[key] = v
 
 when defined(js):
-  var output: string
+  var output*: string
 
 proc visit(i: var Interpreter, n: JlNode): JlObj =
   case n.kind

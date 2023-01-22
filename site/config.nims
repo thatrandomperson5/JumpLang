@@ -1,2 +1,2 @@
 switch("path", "../")
-switch("sourceMap", "on")
+# switch("sourceMap", "on")
