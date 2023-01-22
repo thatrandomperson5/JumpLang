@@ -40,7 +40,19 @@ let boxStyle = style(
   (StyleAttr.borderColor, "--highlight".kstring)
 )
 
+proc fillExample(ev: Event, n: VNode) =
+  var txt: kstring
+  case n.selectedOptions[0].text
+  of "Hello World":
+    txt = staticRead("../tests/test.jmp").kstring
+  of "Loops":
+    txt = staticRead("../tests/test2.jmp").kstring
+  else:
+    txt = "".kstring
+  myCodeMirror.setValue(txt)
+
 proc createDom(): VNode = 
+  let exampleOpts = ["Hello World", "Loops"]
   result = buildHtml(tdiv):
     tdiv(style=boxStyle, id="input")
     pre(style=boxStyle):
@@ -55,6 +67,11 @@ proc createDom(): VNode =
           let res = interpret(code)
           o.add res
           o.add "Finished"
+    select(name="Examples" onchange=fillExample):
+      for name in exampleOpts:
+        option: text name
+        
+    
 
 setRenderer createDom, "ROOT", postRender
 setForeignNodeId "input"
