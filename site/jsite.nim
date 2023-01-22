@@ -32,7 +32,7 @@ proc createDom(): VNode =
         let res = interpret(code)
         o.add res
         o.add "Finished"
-  makeMirror() 
+  # makeMirror() 
 
 setRenderer createDom
 
