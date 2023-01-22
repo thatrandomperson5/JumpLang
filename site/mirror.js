@@ -1,10 +1,6 @@
 
 function makeMirror(id) {
-  new EditorView({
+  new CodeMirror(document.querySelector(id), {
     doc: 'console.log("hello")',
-    extensions: [
-      basicSetup,
-    ],
-    parent: document.querySelector(id)
   })
 }

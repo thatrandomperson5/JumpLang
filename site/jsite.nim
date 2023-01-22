@@ -1,7 +1,6 @@
 
 import libjumplang/[ast, parser, interpreter, syms]
 include karax/[prelude, vstyles]
-import jsffi except `&`
 
 
 proc interpret(f: kstring): kstring =
@@ -32,7 +31,7 @@ proc createDom(): VNode =
         let res = interpret(code)
         o.add res
         o.add "Finished"
-  # makeMirror() 
+  makeMirror() 
 
 setRenderer createDom
 
