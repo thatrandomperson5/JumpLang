@@ -16,7 +16,7 @@ proc interpret(f: kstring): kstring =
   except CatchableError as e:
      result.add e.msg & '\n'
 
-var o: kstring = ""
+var o: kstring = "Output here"
 type CodeMirror = distinct Element
 var myCodeMirror: CodeMirror
 
@@ -25,11 +25,12 @@ proc setValue(cm: CodeMirror, value: kstring) {.importcpp: "#.setValue(@)".}
 proc getValue(cm: CodeMirror): kstring {.importcpp: "#.getValue()".}
 
 proc postRender() =
-  myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
-    mode: "text/html".kstring,
-    value: "".kstring,
-    lineNumbers: true,
-  })
+  if myCodeMirror.Element == nil:
+    myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
+      mode: "text/html".kstring,
+      value: "".kstring,
+      lineNumbers: true,
+    })
 
 let boxStyle = style(
   (StyleAttr.width, "100%".kstring),
@@ -54,4 +55,4 @@ proc createDom(): VNode =
         o.add "Finished"
 
 setRenderer createDom, "ROOT", postRender
-
+setForeignNodeId "input"
