@@ -37,7 +37,9 @@ let boxStyle = style(
   (StyleAttr.height, "100%".kstring),
   (StyleAttr.borderStyle, "solid".kstring),
   (StyleAttr.borderWidth, "1px".kstring),
-  (StyleAttr.borderColor, "--highlight".kstring)
+  (StyleAttr.borderColor, "--highlight".kstring),
+  (StyleAttr.maxHeight, "50vh"),
+  (StyleAttr.overflow, "scroll")
 )
 
 proc fillExample(ev: Event, n: VNode) =
