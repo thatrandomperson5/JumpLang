@@ -43,8 +43,8 @@ let boxStyle = style(
 proc createDom(): VNode = 
   result = buildHtml(tdiv):
     tdiv(style=boxStyle, id="input")
-    code:
-      pre(style=boxStyle):
+    pre(style=boxStyle):
+      code:
         text o
     button:
       text "Run"
