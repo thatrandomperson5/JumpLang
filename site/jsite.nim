@@ -28,6 +28,7 @@ proc postRender() =
   myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
     mode: "text/html".kstring,
     value: "".kstring,
+    lineNumbers: true,
   })
 
 let boxStyle = style(
@@ -40,8 +41,8 @@ let boxStyle = style(
 proc createDom(): VNode = 
   result = buildHtml(tdiv):
     tdiv(style=boxStyle, id="input")
-    code(style=boxStyle):
-      pre:
+    code:
+      pre(style=boxStyle):
         text o
     button:
       text "Run"

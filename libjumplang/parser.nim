@@ -89,8 +89,7 @@ type
    snippet: string
 
 
-proc getMultiFileInfo(fname: string, ls: (int, int)): MultiFileInfo =
-  let data = readFile(fname)
+proc getMultiFileInfo(data: string, ls: (int, int)): MultiFileInfo =
   var linecount = 1
   var colcount = 1
   var total = 0
@@ -109,9 +108,9 @@ proc getMultiFileInfo(fname: string, ls: (int, int)): MultiFileInfo =
     colcount += 1
     total += 1
 
-proc check(m: MatchResult, fname: string) =
+proc check(m: MatchResult, data: string) =
   if not m.ok:
-    let info = getMultiFileInfo(fname, (m.matchLen, m.matchMax))
+    let info = getMultiFileInfo(data, (m.matchLen, m.matchMax))
     var msg = "Syntax Error in " & fname & " (" & $(info.line)
     msg.add ", " & $(info.cola) & ':' & $(info.colb) & "):"
     msg.add "  " & info.snippet
@@ -119,15 +118,16 @@ proc check(m: MatchResult, fname: string) =
 
 proc parseFile*(f: string): JlNode =
   var ac = newAdoptionCenter[JlNode]()
+  let filedata = f.readFile
   when defined(windows) or defined(posix):
-    check parser.matchFile(f, ac), f
+    check parser.matchFile(f, ac), filedata
   else:
-    check parser.match(f.readFile, ac), f
+    check parser.match(filedata, ac), filedata
   ac[0].ensureAst()
   return ac[0]
 
 proc parse*(d: string): JlNode =
   var ac = newAdoptionCenter[JlNode]()
-  doAssert parser.match(d, ac).ok
+  check parser.match(d, ac), d
   ac[0].ensureAst()
   return ac[0]
