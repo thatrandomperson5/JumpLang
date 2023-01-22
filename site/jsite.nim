@@ -1,6 +1,6 @@
 
 import libjumplang/[ast, parser, interpreter, syms]
-include karax/prelude 
+include karax/[prelude, vstyles]
 
 proc interpret(f: kstring): kstring =
   try:
@@ -17,7 +17,7 @@ var o: kstring = ""
 
 proc createDom(): VNode = 
   buildHtml(tdiv):
-    tdiv(style="width: 100;", id="input")
+    tdiv(style=style(StyleAttr.width, "100%"), id="input")
     textarea(readonly="true", width="100", placeholder="Output", id="output"):
       text o
     button:
