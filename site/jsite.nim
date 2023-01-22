@@ -22,15 +22,15 @@ proc postRender() =
   makeMirror("#input")
 
 let boxStyle = style(
-  StyleAttr.width, "100%",
-  StyleAttr.borderStyle, "solid",
-  StyleAttr.borderWidth, "1px",
-  StyleAttr.borderColor, "--highlight"
+  (StyleAttr.width, "100%"),
+  (StyleAttr.borderStyle, "solid"),
+  (StyleAttr.borderWidth, "1px"),
+  (StyleAttr.borderColor, "--highlight")
 )
 
 proc createDom(): VNode = 
   result = buildHtml(tdiv):
-    tdiv(style=boxStyle, class=@["codebox"], id="input")
+    tdiv(style=boxStyle, id="input")
     code(style=boxStyle):
       pre:
         text o
