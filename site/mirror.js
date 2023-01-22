@@ -1,6 +1,11 @@
 
 function makeMirror(id) {
   new CodeMirror(document.querySelector(id), {
-    doc: 'console.log("hello")',
+		mode: "text/html",
+		theme: "neonsyntax",
+		lineWrapping: true,
+		lineNumbers: true,
+		styleActiveLine: true,
+    value: ""
   })
 }

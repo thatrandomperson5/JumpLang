@@ -16,7 +16,10 @@ proc interpret(f: kstring): kstring =
 
 var o: kstring = ""
 
-proc makeMirror(query: kstring = "#input") {.importcpp: "makeMirror(#)".}
+proc makeMirror(query: kstring) {.importcpp: "makeMirror(#)".}
+
+proc postRender() =
+  makeMirror("#input")
 
 proc createDom(): VNode = 
   result = buildHtml(tdiv):
@@ -31,7 +34,6 @@ proc createDom(): VNode =
         let res = interpret(code)
         o.add res
         o.add "Finished"
-  makeMirror() 
 
-setRenderer createDom
+setRenderer createDom, "ROOT", postRender
 
