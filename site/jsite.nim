@@ -34,6 +34,7 @@ proc postRender() =
 
 let boxStyle = style(
   (StyleAttr.width, "100%".kstring),
+  (StyleAttr.height, "100%".kstring),
   (StyleAttr.borderStyle, "solid".kstring),
   (StyleAttr.borderWidth, "1px".kstring),
   (StyleAttr.borderColor, "--highlight".kstring)
@@ -50,9 +51,10 @@ proc createDom(): VNode =
       proc onclick(ev: Event; n: VNode) =
         o = "Working...\n"
         let code = myCodeMirror.getValue()
-        let res = interpret(code)
-        o.add res
-        o.add "Finished"
+        if code != "".kstring:
+          let res = interpret(code)
+          o.add res
+          o.add "Finished"
 
 setRenderer createDom, "ROOT", postRender
 setForeignNodeId "input"
