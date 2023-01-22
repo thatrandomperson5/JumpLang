@@ -1,1 +1,2 @@
 switch("path", "../")
+switch("sourceMap")
