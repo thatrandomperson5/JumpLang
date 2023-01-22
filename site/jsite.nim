@@ -42,7 +42,8 @@ let boxStyle = style(
 
 proc fillExample(ev: Event, n: VNode) =
   var txt: kstring
-  case n.selectedOptions[0].text
+  let sel = n.value
+  case sel
   of "Hello World":
     txt = staticRead("../tests/test.jmp").kstring
   of "Loops":
