@@ -43,11 +43,13 @@ let boxStyle = style(
 proc fillExample(ev: Event, n: VNode) =
   var txt: kstring
   let sel = n.value
+  const hw = staticRead("../tests/test.jmp").kstring
+  const lp = staticRead("../tests/test2.jmp").kstring
   case $sel
   of "Hello World":
-    txt = staticRead("../tests/test.jmp").kstring
+    txt = hw
   of "Loops":
-    txt = staticRead("../tests/test2.jmp").kstring
+    txt = lp
   else:
     txt = "".kstring
   myCodeMirror.setValue(txt)
@@ -55,6 +57,8 @@ proc fillExample(ev: Event, n: VNode) =
 proc createDom(): VNode = 
   let exampleOpts = ["Hello World", "Loops"]
   result = buildHtml(tdiv):
+    h1:
+      text "JumpLang Web Interpreter"
     tdiv(style=boxStyle, id="input")
     pre(style=boxStyle):
       code:
