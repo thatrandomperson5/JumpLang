@@ -7,10 +7,13 @@ func counto(max):
       jump myloop
   jump myloop
 
-w = "world"
-if true:
-  echo "hello", w
+func hello():
+  w = "world"
+  if true:
+    echo "hello", w
+  
+hello()
 
 echo "From jumplang"
 
-counto(5)
+counto(500)

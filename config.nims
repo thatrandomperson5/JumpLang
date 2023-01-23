@@ -2,3 +2,4 @@
 # switch("d", "npegTrace")
 # switch("d", "jlDebugIt")
 # switch("d", "jlDebugSym")
+switch("gc", "orc")

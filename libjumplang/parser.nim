@@ -6,7 +6,10 @@ import std/[strutils]
 let parser = peg("file", ac: AdoptionCenter[JlNode]):
   # Utils
   W <- *Blank
-  ArgList <- astc.hooked(Expr * W * *(',' * W * Expr * W) * ?','):
+  ArgList <- astc.hooked(?Expr * W * *(',' * W * Expr * W) * ?','):
+    var arl = newArgList()
+    adoptCycle(ac, arl)
+  FArgList <- astc.hooked(Expr * W * *(',' * W * Expr * W) * ?','):
     var arl = newArgList()
     adoptCycle(ac, arl)
     
@@ -55,7 +58,7 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
     var kwe = newCallExpr()
     adoptCycle(ac, kwe, 2)
 
-  KwExpr <- +Blank * ArgList:
+  KwExpr <- +Blank * FArgList:
     var kwe = newKwExpr()
     adoptCycle(ac, kwe, 2)
   PrimarySuffix <- CallExpr | KwExpr
