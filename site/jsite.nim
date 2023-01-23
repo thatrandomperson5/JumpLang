@@ -76,6 +76,7 @@ proc createDom(): VNode =
         text "Run"
         proc onclick(ev: Event; n: VNode) =
           o = "Working...\n"
+          redraw()
           let code = myCodeMirror.getValue()
           if code != "".kstring:
             let res = interpret(code)
