@@ -1,4 +1,5 @@
 import npeg, ast
+import npeg/codegen
 import npeg_utils/[indent, astc]
 import std/[strutils]
 
@@ -79,17 +80,54 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
   # File
   file <- StmtList * !1
 
+type 
+  JlSyntaxError = object of CatchableError
+  MultiFileInfo = ref object
+   line: int
+   cola: int
+   colb: int
+   snippet: string
+
+
+proc getMultiFileInfo(data: string, ls: (int, int)): MultiFileInfo =
+  var linecount = 1
+  var colcount = 1
+  var total = 0
+  for c in data:
+    if total == ls[0]:
+      result.cola = colcount
+      result.line = linecount
+    if total >= ls[0]:
+      result.snippet.add c
+    if total == ls[1]:
+      result.colb = colcount
+      return result
+    if c == '\n':
+      linecount += 1
+      colcount = 0
+    colcount += 1
+    total += 1
+
+proc check(m: MatchResult, data: string, fname="<Unnamed>") =
+  if not m.ok:
+    let info = getMultiFileInfo(data, (m.matchLen, m.matchMax))
+    var msg = "Syntax Error in " & fname & " (" & $(info.line)
+    msg.add ", " & $(info.cola) & ':' & $(info.colb) & "):"
+    msg.add "  " & info.snippet
+    raise newException(JlSyntaxError, msg)
+
 proc parseFile*(f: string): JlNode =
   var ac = newAdoptionCenter[JlNode]()
+  let filedata = f.readFile
   when defined(windows) or defined(posix):
-    doAssert parser.matchFile(f, ac).ok
+    check parser.matchFile(f, ac), filedata, f
   else:
-    doAssert parser.match(f.readFile, ac).ok
+    check parser.match(filedata, ac), filedata, f
   ac[0].ensureAst()
   return ac[0]
 
 proc parse*(d: string): JlNode =
   var ac = newAdoptionCenter[JlNode]()
-  doAssert parser.match(d, ac).ok
+  check parser.match(d, ac), d
   ac[0].ensureAst()
   return ac[0]

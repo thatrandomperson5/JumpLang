@@ -7,18 +7,17 @@ type JlConfig = ref object
 
 proc printTrace(res: InterpreterResult): string =
   for item in res.stack:
-    result.add "  In "
+    result.add "In "
     case item.typ
     of Global:
       result.add item.name
     of Function:
       result.add "func " & item.name
     result.add ":\n"
-  result.add "  " & res.msg
+  result.add res.msg
 
 proc interpretFile(filename: string, conf: JlConfig) =
   let a = filename.parseFile
-  echo a
   if conf.checkSemantics:
     a.ensureSemantics()
   let res = a.interpret(filename)
