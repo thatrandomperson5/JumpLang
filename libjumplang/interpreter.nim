@@ -130,6 +130,8 @@ proc visit(i: var Interpreter, n: JlNode): JlObj =
         echo "Warning: Unhandled Stmt: " & $n & "\n"
 
 proc interpret*(n: JlNode, name: string): InterpreterResult =
+  when defined(js):
+    output = ""
   var i = Interpreter(tree: n) 
   var ar = ActivationRecord(name: name, typ: Global, lvl: 1)
   result = InterpreterResult(failed: false)
