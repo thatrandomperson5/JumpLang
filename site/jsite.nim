@@ -29,7 +29,6 @@ proc postRender() =
   var theTheme = "default".kstring
   if isDarkMode():
     theTheme = "dracula".kstring
-  echo "Theme: ", theTheme
   
   if myCodeMirror.Element == nil:
     myCodeMirror = newCodeMirror(kdom.getElementById("input"), js{
