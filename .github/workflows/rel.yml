@@ -1,0 +1,48 @@
+name: Build and release
+
+on:
+  release:
+    types: [published]
+    
+jobs:
+  linux:
+    runs-on: ubunut-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup nim
+        uses: jiro4989/setup-nim-action@v1
+        with: 
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: build
+        run: |
+          nimble install --depsOnly
+          nim cpp -d:release --opt:speed ./jumplang.nim
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: jumplang
+          asset_name: jumplang
+          tag: ${{ github.ref }}
+          
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup nim
+        uses: jiro4989/setup-nim-action@v1
+        with: 
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: build
+        run: |
+          nimble install --depsOnly
+          nim cpp -d:release --opt:speed ./jumplang.nim
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: jumplang.exe
+          asset_name: jumplang.exe
+          tag: ${{ github.ref }}
