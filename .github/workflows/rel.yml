@@ -16,8 +16,8 @@ jobs:
           
       - name: build
         run: |
-          nimble install --depsOnly
-          nim cpp -d:release --opt:speed ./jumplang.nim
+          nimble install --depsOnly -y 
+          nim cpp -d:release -d:danger --opt:speed ./jumplang.nim
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -37,8 +37,8 @@ jobs:
           
       - name: build
         run: |
-          nimble install --depsOnly
-          nim cpp -d:release --opt:speed ./jumplang.nim
+          nimble install --depsOnly -y
+          nim cpp -d:release -d:danger --opt:speed ./jumplang.nim
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
