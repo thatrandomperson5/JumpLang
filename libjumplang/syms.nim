@@ -92,12 +92,7 @@ proc walkSyms(n: JlNode, s: var SymContext) =
     let i = n[0].getStr()
     raiseSemanticError(not s.inScope(i), i, 1)
     s[i] = Symbol(name: i, kind: TemplateSym)
-  of FlagStmt:
-    let i = n[0].getStr()
-    raiseSemanticError(not s.inScope(i), i, 1)
-    s[i] = Symbol(name: i, kind: FlagSym)
-    for child in n[1]:
-      walkSyms(child, s)
+
   of Ident:
     definedIdent(s, n.getStr()).raiseSemanticError(n.getStr, 0)
   of CallExpr:

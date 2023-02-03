@@ -1,5 +1,5 @@
 
-import libjumplang/[ast, parser, interpreter, syms]
+import libjumplang/[ast, parser, interpreter, syms, bytecode]
 include karax/prelude
 import karax/[vstyles, kdom]
 import jsffi except `&`
@@ -9,7 +9,8 @@ proc interpret(f: kstring): kstring =
   try:
     let a = parse($(f))
     a.ensureSemantics()
-    let res = a.interpret("<Unnamed>")
+    let bytecode = a.makeByteCode()
+    let res = bytecode.interpret("<Unnamed>")
     result.add output
     if res.failed:
        result.add res.msg

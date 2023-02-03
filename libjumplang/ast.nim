@@ -5,7 +5,7 @@ type
   JlKindError = object of ValueError
 
   JlKind* = enum OpExpr, Ident, StrLit, IntLit, BoolLit, KwExpr, StmtList, VarDecl, ArgList, CallExpr,
-           IfStmt, FuncStmt, TemplateStmt, Op, FlagStmt
+           IfStmt, FuncStmt, TemplateStmt, Op
 
   JlNode* = ref object
     case kind*: JlKind
@@ -15,10 +15,10 @@ type
       i: int
     of BoolLit:
       b: bool
-    of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, FlagStmt:
+    of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
       list: seq[JlNode]
 
-const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, FlagStmt}
+const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr}
 const litSet = {StrLit, IntLit, BoolLit}
 const exprSet = {OpExpr, KwExpr, CallExpr}
 const valueSet = {Ident} + litSet + exprSet
@@ -46,8 +46,6 @@ proc getBool*(n: JlNode): bool =
 proc newIdent*(s: string): JlNode = JlNode(kind: Ident, s: s)
 
 proc newArgList*(): JlNode = JlNode(kind: ArgList)
-
-proc newFlagStmt*(): JlNode = JlNode(kind: FlagStmt)
 
 proc newIfStmt*(): JlNode = JlNode(kind: IfStmt)
 
@@ -102,7 +100,7 @@ proc traverseAst(node: JlNode, indent: int, res: var string) =
     res.add "IntLit: " & $(node.i) & "\n"
   of BoolLit:
     res.add "BoolLit: " & $(node.b) & "\n"
-  of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, FlagStmt:
+  of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
     res.add $(node.kind) & ": \n"
     for item in node:
       traverseAst(item, indent+1, res)
@@ -127,11 +125,6 @@ proc ensureAst*(node: JlNode) =
     of IfStmt:
       child.expectLen(2)
       child[0].expectKind(valueSet)
-      child[1].expectKind(StmtList)
-      child[1].ensureAst()
-    of FlagStmt:
-      child.expectLen(2)
-      child[0].expectKind(Ident)
       child[1].expectKind(StmtList)
       child[1].ensureAst()
     of VarDecl:

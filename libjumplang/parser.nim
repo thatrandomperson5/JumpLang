@@ -44,7 +44,7 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
   Comment <- W * '#' * *(1 - {'\n', '\r'})
 
   # Exprs
-  OpKind <- >(">=" | "<=" | "==" | '>' | '<' | {'+', '-', '*', '/'}):
+  OpKind <- >(">=" | "<=" | "==" | '>' | '<' | {'*', '/', '+', '-'}):
     ac.add newOp($1)
   Expr <- OpExpr 
   OpEnd <- W * >OpKind * W * PrimaryExpr:
@@ -52,7 +52,8 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
     adoptCycle(ac, op, 3)
 
   OpExpr <- PrimaryExpr * *(OpEnd) * W
-  PrimaryExpr <- Lit | (Ident * *PrimarySuffix)
+  GroupExpr <- '(' * Expr * ')'
+  PrimaryExpr <- (Lit | GroupExpr)  | (Ident * *PrimarySuffix)
 
   CallExpr <- '(' * ArgList * ')':
     var kwe = newCallExpr()
@@ -67,9 +68,12 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
   IfStmt <- ib.Line("if" * +Blank * Expr * W * ':' * ?Comment) * ib.Block(StmtList):
     var ifs = newIfStmt()
     adoptCycle(ac, ifs, 2)
+
+  #[
   FlagStmt <- ib.Line("flag" * +Blank * Ident * W * ':' * ?Comment) * ib.Block(StmtList):
     var f = newFlagStmt()
     adoptCycle(ac, f, 2)
+  ]#
 
   DefStmt(kw) <- ib.Line(kw * +Blank * Ident * W * '(' * W * ArgList * W * ')' * W * ':' * ?Comment) * ib.Block(StmtList)
   FuncStmt <- DefStmt("func"):
@@ -78,7 +82,7 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
   TemplateStmt <- DefStmt("template"):
     var def = newTemplateStmt()
     adoptCycle(ac, def, 3)
-  StandaloneStmt <- FlagStmt | IfStmt | FuncStmt | TemplateStmt
+  StandaloneStmt <- IfStmt | FuncStmt | TemplateStmt # FlagStmt | 
 
   # File
   file <- StmtList * !1
