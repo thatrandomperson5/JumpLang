@@ -5,7 +5,8 @@ then
     curl -o compiler.jar "https://repo1.maven.org/maven2/com/google/javascript/closure-compiler/v20230103/closure-compiler-v20230103.jar"
   fi
   echo "Running closure:"
-  java -jar ./compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --js ./app.js --js_output_file ./release.js
+  java -jar ./compiler.jar --js ./app.js --js_output_file ./release.js
+  # --compilation_level ADVANCED_OPTIMIZATIONS
   rm ./app.js
 else
   mv ./app.js ./release.js
