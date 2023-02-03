@@ -1,7 +1,7 @@
 import npeg, ast
 import npeg/codegen
 import npeg_utils/[indent, astc]
-import std/[strutils]
+import std/[strutils, parseutils]
 
 let parser = peg("file", ac: AdoptionCenter[JlNode]):
   # Utils
@@ -35,12 +35,16 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
     ac.add newStrLit($1)
   IntLit <- >(?'-' * +Digit):
     ac.add newIntLit(parseInt($1))
+  FloatLit <- >(?'-' * +Digit * "." * +Digit): 
+    var res: float
+    doAssert parseFloat($1, res) == len($1)
+    ac.add newFloatLit(res)
   BoolLit <- >("true" | "false"):
     if $1 == "true":
       ac.add newBoolLit(true)
     else:
       ac.add newBoolLit(false)
-  Lit <- W * (BoolLit | StrLit | IntLit) * W
+  Lit <- W * (BoolLit | StrLit | FloatLit | IntLit) * W
   Comment <- W * '#' * *(1 - {'\n', '\r'})
 
   # Exprs

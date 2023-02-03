@@ -4,7 +4,7 @@ import keywords
 type
   JlKindError = object of ValueError
 
-  JlKind* = enum OpExpr, Ident, StrLit, IntLit, BoolLit, KwExpr, StmtList, VarDecl, ArgList, CallExpr,
+  JlKind* = enum OpExpr, Ident, StrLit, IntLit, BoolLit, FloatLit, KwExpr, StmtList, VarDecl, ArgList, CallExpr,
            IfStmt, FuncStmt, TemplateStmt, Op
 
   JlNode* = ref object
@@ -13,13 +13,15 @@ type
       s: string
     of IntLit:
       i: int
+    of FloatLit:
+      f: float
     of BoolLit:
       b: bool
     of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
       list: seq[JlNode]
 
 const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr}
-const litSet = {StrLit, IntLit, BoolLit}
+const litSet = {StrLit, IntLit, BoolLit, FloatLit}
 const exprSet = {OpExpr, KwExpr, CallExpr}
 const valueSet = {Ident} + litSet + exprSet
 
@@ -43,6 +45,10 @@ proc getBool*(n: JlNode): bool =
   n.expectKind {BoolLit}
   return n.b
 
+proc getFloat*(n: JlNode): float =
+  n.expectKind {FloatLit}
+  return n.f
+
 proc newIdent*(s: string): JlNode = JlNode(kind: Ident, s: s)
 
 proc newArgList*(): JlNode = JlNode(kind: ArgList)
@@ -64,6 +70,8 @@ proc newOp*(s: string): JlNode = JlNode(kind: Op, s: s)
 proc newStrLit*(s: string): JlNode = JlNode(kind: StrLit, s: s)
 
 proc newIntLit*(i: int): JlNode = JlNode(kind: IntLit, i: i)
+
+proc newFloatLit*(f: float): JlNode = JlNode(kind: FloatLit, f: f)
 
 proc newBoolLit*(b: bool): JlNode = JlNode(kind: BoolLit, b: b)
 
@@ -98,6 +106,8 @@ proc traverseAst(node: JlNode, indent: int, res: var string) =
     res.add $(node.kind) & ": " & node.s & "\n"
   of IntLit:
     res.add "IntLit: " & $(node.i) & "\n"
+  of FloatLit:
+    res.add "FloatLit: " & $(node.f) & "\n"
   of BoolLit:
     res.add "BoolLit: " & $(node.b) & "\n"
   of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:

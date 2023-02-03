@@ -1,6 +1,7 @@
 # Important
-* [ ] Run on bytecode
-* [ ] Add float native obj
+* [X] Run on bytecode
+* [X] Add float native obj
+  - [ ] Make int ops
 * [ ] Add return types
 * [ ] Add list native obj
 

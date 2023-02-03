@@ -82,28 +82,28 @@ proc run(i: var Interpreter) =
 
   # Start ops   
   of ADDOP:
-    i.madd newNativeInt(i.mpop.ensureInt + i.mpop.ensureInt)
+    i.madd newNativeFloat(i.mpop.ensureFloat + i.mpop.ensureFloat)
   of SUBOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
-    i.madd newNativeInt(rev[1] - rev[0])
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
+    i.madd newNativeFloat(rev[1] - rev[0])
   of MULTOP:
-    i.madd newNativeInt(i.mpop.ensureInt * i.mpop.ensureInt)
+    i.madd newNativeFloat(i.mpop.ensureFloat * i.mpop.ensureFloat)
   of DIVOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
-    i.madd newNativeInt((rev[1] / rev[0]).int)
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
+    i.madd newNativeFloat(rev[1] / rev[0])
   of EQOP:
     i.madd newNativeBool(i.mpop.ensureBool == i.mpop.ensureBool)
   of GTEOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
     i.madd newNativeBool(rev[1] >= rev[0])
   of LTEOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
     i.madd newNativeBool(rev[1] <= rev[0])
   of GTOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
     i.madd newNativeBool(rev[1] >= rev[0])
   of LTOP:
-    let rev = [i.mpop.ensureInt, i.mpop.ensureInt]
+    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
     i.madd newNativeBool(rev[1] < rev[0])
   i.pos += 1
   when defined(jlDebugIt):

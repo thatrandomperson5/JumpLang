@@ -1,11 +1,11 @@
 
 import ast, keywords
-import std/[strutils]
+import std/[strutils, parseutils]
 
 type
 
   NativeTypeError* = object of ValueError
-  JlObjKind* = enum NativeInt, NativeStr, NativeBool, Func, FlagBlock
+  JlObjKind* = enum NativeInt, NativeStr, NativeBool, NativeFloat, Func, FlagBlock
   JlObj* = ref object
     case kind: JlObjKind
     of NativeInt:
@@ -14,6 +14,8 @@ type
       s: string
     of NativeBool:
       b: bool
+    of NativeFloat:
+      f: float
     of Func:
       name: string
       address: int
@@ -56,6 +58,8 @@ proc ensureStr*(obj: JlObj): string =
     return $(obj.s)
   of NativeBool:
     return $(obj.b)
+  of NativeFloat:
+    return $(obj.f)
   else:
     raise newException(NativeTypeError, "Cannot convert type to String")
 
@@ -71,10 +75,25 @@ proc ensureInt*(obj: JlObj): int =
   else:
     raise newException(NativeTypeError, "Cannot convert type to Int")
 
+proc ensureFloat*(obj: JlObj): float =
+  case obj.kind
+  of NativeInt:
+    return obj.i.float
+  of NativeStr:
+    var res: float
+    doAssert obj.s.parseFloat(res) == obj.s.len
+    return res
+  of NativeFloat:
+    return obj.f
+  else:
+    raise newException(NativeTypeError, "Cannot convert type to Float")
+
 proc ensureBool*(obj: JlObj): bool =
   case obj.kind
   of NativeInt:
     return obj.i > 0
+  of NativeFloat:
+    return obj.f > 0.0
   of NativeStr:
     return obj.s.len > 0
   of NativeBool:
@@ -92,7 +111,7 @@ proc newNativeBool*(b: bool): JlObj = JlObj(kind: NativeBool, b: b)
 
 proc newNativeInt*(i: int): JlObj = JlObj(kind: NativeInt, i: i)
 
-
+proc newNativeFloat*(f: float): JlObj = JlObj(kind: NativeFloat, f: f)
 
 
 proc visit(n: JlNode, jlc: var seq[BC]) =
@@ -101,6 +120,8 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
     jlc.add(BC(kind: PUSH, value: newNativeStr(n.getStr)))
   of IntLit:
     jlc.add(BC(kind: PUSH, value: newNativeInt(n.getInt)))
+  of FloatLit:
+    jlc.add(BC(kind: PUSH, value: newNativeFloat(n.getFloat)))
   of BoolLit:
     jlc.add(BC(kind: PUSH, value: newNativeBool(n.getBool)))
   of VarDecl:
