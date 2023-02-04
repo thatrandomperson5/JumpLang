@@ -1,0 +1,22 @@
+# ignore files with no extention:
+*
+!*/
+!*.*
+
+# normal ignores:
+*.exe
+nimcache
+*.pdb
+*.ilk
+.*
+!.git*
+
+# R ingores:
+*.nix
+nimv.txt
+BOOTLOG
+nimble-env
+boot.sh
+
+# Java
+**/*.jar
