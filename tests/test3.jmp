@@ -1,0 +1,12 @@
+func factorial(num):
+  current = num
+  result = 1
+  flag r
+  result = result * current
+  current = current - 1
+  if current <= 1:
+    return result
+  jump r
+
+echo factorial(5)
+echo factorial(10)

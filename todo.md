@@ -2,7 +2,7 @@
 * [X] Run on bytecode
 * [X] Add float native obj
   - [ ] Make int ops
-* [ ] Add return types
+* [X] Add return types
 * [ ] Add list native obj
 
 # Less Important

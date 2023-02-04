@@ -14,13 +14,15 @@ proc printTrace(res: InterpreterResult): string =
       result.add item.name
     of Function:
       result.add "func " & item.name
+    of Block:
+      result.add item.name
     result.add ":\n"
   result.add res.msg
 
 
 proc interpretFile(filename: string, conf: JlConfig) =
   let a = filename.parseFile
-  # echo a
+  echo a
   if conf.checkSemantics:
     a.ensureSemantics()
   let bytecode = a.makeByteCode()

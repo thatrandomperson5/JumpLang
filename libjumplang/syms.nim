@@ -11,17 +11,20 @@ type
       params: seq[Symbol]
     else:
       discard
-
+  
   ScopedSymTable* = object
     scope: int
     name: string
+    kind: SymTableKind 
     t: Table[string, Symbol]
+  SymTableKind {.pure.} = enum stkFunc, stkGlobal
 
   SymTable* = ref ScopedSymTable
   SymContext = ref object
     stack: seq[SymTable]
 
-proc newSymTable*(name: string, scope: int): SymTable = SymTable(name: name, scope: scope)
+proc newSymTable*(name: string, scope: int, kind: SymTableKind): SymTable = 
+  return SymTable(name: name, scope: scope, kind: kind)
 
 proc `[]=`*(t: var SymTable, key: string, value: Symbol) = t.t[key] = value
 
@@ -52,6 +55,15 @@ proc definedIdent(s: SymContext, i: string, acceptFlags=false): bool =
         continue
       return true
   return false
+
+proc funcInScope(s: SymContext): bool =
+  for n in 1..s.stack.len:
+    let current = s.stack[^n]
+    if current.kind == stkFunc:
+      return true
+  return false
+
+
 proc inScope(s: SymContext, i: string): bool =
   if i in s.v.t:
     return true
@@ -74,7 +86,7 @@ proc walkSyms(n: JlNode, s: var SymContext) =
     let i = n[0].getStr()
     raiseSemanticError(not s.inScope(i), i, 1)
     var ns = Symbol(name: i, kind: FuncSym)
-    var newTb = newSymTable(i, s.v.scope+1)
+    var newTb = newSymTable(i, s.v.scope+1, stkFunc)
     for child in n[1]:
       let i = child.getStr()
       newTb[i] = Symbol(name: i, kind: ParamSym)
@@ -117,7 +129,7 @@ proc addDefaults(s: var SymTable) =
   discard
 
 proc ensureSemantics*(n: JlNode) =
-  var sy = newSymTable("global", 0)
+  var sy = newSymTable("global", 0, stkGlobal)
   sy.addDefaults()
   let l = @[sy]
   var s = SymContext(stack: l)

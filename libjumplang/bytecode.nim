@@ -130,6 +130,7 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
   of Ident:
     jlc.add(BC(kind: GET, name: n.getStr))   
   of FuncStmt:
+    # PUSH {FUNC OBJ} SET PUSH {ENDPOS} JUMP SET {ARGUMENTS} PUSH 0 RETURN
     let name = n[0].getStr
     let f = JlObj(kind: Func, name: name, address: jlc.len+3)
     jlc.add(BC(kind: PUSH, value: f))
@@ -141,22 +142,25 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
       let arg = n[1][i]
       jlc.add(BC(kind: SET, name: arg.getStr))
     n[2].visit(jlc)
-    jlc.add(newBcAction(RETURN))
-    jlc.add(newBcAction(EXIT))
-    
+    jlc.add(BC(kind: PUSH, value: newNativeInt(0)))
+    jlc.add(newBcAction(RETURN))    
+
     jumplink.value = newNativeInt(jlc.high)
     
   of CallExpr:
+    # GET ENTERFUNC JUMP
     let name = n[0].getStr
     n[1].visit(jlc)
     jlc.add(BC(kind: GET, name: name))  
     jlc.add(BC(kind: ENTERFUNC, name: name))
     jlc.add(newBcAction(JUMP))
   of IfStmt:
+    # {COND} IF {BODY} EXIT
     n[0].visit(jlc)
     var code = BC(kind: IF)
     jlc.add(code)
     n[1].visit(jlc)
+    jlc.add(newBcAction(EXIT))
     code.amount = jlc.high
 
   of KwExpr:

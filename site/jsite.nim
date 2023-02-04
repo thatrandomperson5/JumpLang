@@ -45,7 +45,7 @@ let boxStyle = style(
   (StyleAttr.borderStyle, "solid".kstring),
   (StyleAttr.borderWidth, "1px".kstring),
   (StyleAttr.borderColor, "--highlight".kstring),
-  (StyleAttr.maxHeight, "50vh".kstring),
+  (StyleAttr.maxHeight, "42vh".kstring),
   (StyleAttr.overflow, "scroll".kstring)
 )
 
@@ -54,17 +54,20 @@ proc fillExample(ev: Event, n: VNode) =
   let sel = n.value
   const hw = staticRead("../tests/test.jmp").kstring
   const lp = staticRead("../tests/test2.jmp").kstring
+  const fc = staticRead("../tests/test3.jmp").kstring
   case $sel
   of "Hello World":
     txt = hw
   of "Loops":
     txt = lp
+  of "Factorials":
+    txt = fc
   else:
     txt = "".kstring
   myCodeMirror.setValue(txt)
 
 proc createDom(): VNode = 
-  let exampleOpts = ["None", "Hello World", "Loops"]
+  let exampleOpts = ["None", "Hello World", "Loops", "Factorials"]
   result = buildHtml(tdiv):
     h1:
       text "JumpLang Web Interpreter"
@@ -72,7 +75,10 @@ proc createDom(): VNode =
     pre(style=boxStyle):
       code:
         text o
-    tdiv(style=style(StyleAttr.display, "flex")):
+    tdiv(style=style(
+      (StyleAttr.display, "flex"),
+      (StyleAttr.justifyContent, "space-between")
+    )):
       button:
         text "Run"
         proc onclick(ev: Event; n: VNode) =
@@ -83,9 +89,15 @@ proc createDom(): VNode =
             let res = interpret(code)
             o.add res
           o.add "Finished"
-      select(name="Examples", onchange=fillExample):
-        for name in exampleOpts:
-          option: text name
+      tdiv(style=style(
+        (StyleAttr.display, "flex"),
+        (StyleAttr.alignItems, "center")
+      )):
+        b:
+          text "Examples:&nbsp;&nbsp;"
+        select(name="Examples", onchange=fillExample):
+          for name in exampleOpts:
+            option: text name
         
     
 

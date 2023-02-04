@@ -1,6 +1,6 @@
 import std/tables, ast, keywords, bytecode
 type
-  ArType* = enum Global, Function
+  ArType* = enum Global, Function, Block
 
 
   ActivationRecord = ref object
@@ -31,9 +31,15 @@ proc `$`*(ar: ActivationRecord): string =
   for key, value in ar.data:
     result.add key & ": " & $(value[]) & "\n"
 
-proc `[]`(i: Interpreter, key: string): JlObj = i.stack[^1].data[key]
+proc `[]`(i: Interpreter, key: string): JlObj = 
+  for index in 1..i.stack.len:
+    let item = i.stack[^index]
+    if key in item.data:
+      return item.data[key]
+  raise newException(CatchableError, "Interpreter failure, symbol checks have failed.")
 
 proc v(i: Interpreter): ActivationRecord = i.stack[^1]
+
 
 proc mpop(i: var Interpreter): JlObj = i.memstack.pop
 
@@ -67,10 +73,19 @@ proc run(i: var Interpreter) =
   of ENTERFUNC:
     var ar = ActivationRecord(name: current.name, typ: Function, lvl: i.v.lvl+1, retr: i.pos+1)
     i.stack.add ar
+
   of JUMP:
     i.pos = i.mpop.getAddr
   of RETURN:
-    i.pos = i.v.retr
+    var ar = i.stack.pop
+    while true:
+      if ar.typ == Function:
+        i.pos = ar.retr
+        break
+      if i.stack.len == 0:
+        raise newException(CatchableError, "Interpreter failure, symbol checks have failed.")
+      ar = i.stack.pop
+
   of EXIT:
     when defined(jlDebugIt):
       echo $(i.v)
@@ -78,7 +93,9 @@ proc run(i: var Interpreter) =
   of IF:
     if not i.mpop.ensureBool:
       i.pos = current.amount
-    
+    else:
+      var ar = ActivationRecord(name: "if", typ: Block, lvl: i.v.lvl+1)
+      i.stack.add ar
 
   # Start ops   
   of ADDOP:

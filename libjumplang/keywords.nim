@@ -12,6 +12,9 @@ template astHandleKeywords*(): untyped =
   of "flag":
     sub.expectLen(1)
     sub[0].expectKind(Ident)   
+  of "return":
+    sub.expectLen(1)
+    sub[0].expectKind(valueSet)
   else:
    discard
 
@@ -28,6 +31,10 @@ template symHandleKeywords*(): untyped =
     let i = n[1][0].getStr()
     raiseSemanticError(not s.inScope(i), i, 1)
     s[i] = Symbol(name: i, kind: FlagSym)
+  of "return":
+    if not s.funcInScope:
+      raise newException(SemanticError, "Return is ouside of a function!")
+    walkSyms(n[1], s)
   else:
     raise newException(SemanticError, "Undeclared Keyword " & i)
 
@@ -44,6 +51,9 @@ template bcKw*(): untyped =
   of "flag":
     jlc.add(BC(kind: PUSH, value: newNativeInt(jlc.len+1)))
     jlc.add(BC(kind: SET, name: n[1][0].getStr()))
+  of "return":
+    n[1].visit(jlc)
+    jlc.add(newBcAction(RETURN))
   else:
     discard
 

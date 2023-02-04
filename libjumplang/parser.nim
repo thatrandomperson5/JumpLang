@@ -104,7 +104,9 @@ proc getMultiFileInfo(data: string, ls: (int, int)): MultiFileInfo =
   var linecount = 1
   var colcount = 1
   var total = 0
-  for c in data:
+  var datacopy: string
+  result = MultiFileInfo()
+  for c in datacopy:
     if total == ls[0]:
       result.cola = colcount
       result.line = linecount

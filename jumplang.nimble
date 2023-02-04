@@ -18,6 +18,7 @@ task test, "Test the interpreter.":
   exec "nim c jumplang.nim"
   exec "./jumplang tests/test.jmp"
   exec "./jumplang tests/test2.jmp"
+  exec "./jumplang tests/test3.jmp"
 
 task site, "Make the website.":
   exec "nimble install --depsOnly -y"
