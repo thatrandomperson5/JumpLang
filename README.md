@@ -1,5 +1,7 @@
 # JumpLang
-Just a test interpreter made in nim
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/thatrandomperson5/jumplang) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thatrandomperson5/jumplang) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/thatrandomperson5/jumplang/rel.yml) ![GitHub Repo stars](https://img.shields.io/github/stars/thatrandomperson5/jumplang?style=social) ![GitHub last commit](https://img.shields.io/github/last-commit/thatrandomperson5/jumplang) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/thatrandomperson5/jumplang)
+
+A example interpreter made in about 1165 lines of nim
 
 
 # Use it!
