@@ -1,18 +1,18 @@
 template astHandleKeywords*(): untyped =
-  child.expectLen(2)
-  child[0].expectKind(Ident)
-  child[1].expectKind(ArgList)
-  let sub = child[1]
-  case child[0].getStr:
-  of "echo":
+  node.expectLen(2)
+  node[0].expectKind(Ident)
+  node[1].expectKind(ArgList)
+  let sub = node[1]
+  case node[0].getStr:
+  of "echo": # echo (*{ARGS})
     discard
-  of "jump":
+  of "jump": # jump {IDENT}
     sub.expectLen(1)
     sub[0].expectKind(Ident)
-  of "flag":
+  of "flag": # flag {IDENT}
     sub.expectLen(1)
     sub[0].expectKind(Ident)   
-  of "return":
+  of "return": # return {VALUE}
     sub.expectLen(1)
     sub[0].expectKind(valueSet)
   else:
@@ -26,13 +26,13 @@ template symHandleKeywords*(): untyped =
   of "echo":
     walkSyms(n[1], s)
   of "jump":
-    definedIdent(s, getStr(n[1][0]), true).raiseSemanticError(getStr(n[1][0]), 0)
+    definedIdent(s, getStr(n[1][0]), true).raiseSemanticError(getStr(n[1][0]), 0) # Make sure the flag is defined
   of "flag":
     let i = n[1][0].getStr()
-    raiseSemanticError(not s.inScope(i), i, 1)
-    s[i] = Symbol(name: i, kind: FlagSym)
+    raiseSemanticError(not s.inScope(i), i, 1) # Make sure the flag is not already defined
+    s[i] = Symbol(name: i, kind: FlagSym) # Make the flag symbol
   of "return":
-    if not s.funcInScope:
+    if not s.funcInScope: # Make sure it is in a function
       raise newException(SemanticError, "Return is ouside of a function!")
     walkSyms(n[1], s)
   else:
@@ -41,23 +41,23 @@ template symHandleKeywords*(): untyped =
 template bcKw*(): untyped =
   let i = n[0].getStr()
   case i:
-  of "echo":
+  of "echo": # ECHO {argument amount}
     for child in n[1]:
       child.visit(jlc)
     jlc.add(BC(kind: ECHO, amount: n[1].len))
-  of "jump":
+  of "jump": # JUMP
     n[1].visit(jlc)
     jlc.add(newBcAction(JUMP))
-  of "flag":
+  of "flag": # PUSH {pos after flag} SET {flagname}
     jlc.add(BC(kind: PUSH, value: newNativeInt(jlc.len+1)))
     jlc.add(BC(kind: SET, name: n[1][0].getStr()))
-  of "return":
+  of "return": # RETURN
     n[1].visit(jlc)
     jlc.add(newBcAction(RETURN))
   else:
     discard
 
-template bcOp*(): untyped = 
+template bcOp*(): untyped = # Operators
   n[0].visit(jlc)
   n[2].visit(jlc)
   case n[1].getStr
@@ -82,7 +82,7 @@ template bcOp*(): untyped =
   else:
     discard
 
-template visitOp*(): untyped = 
+template visitOp*(): untyped {.deprecated: "Used for a old system, not used anymore".} = 
   let a = i.visit(n[0])
   let b = i.visit(n[2])
   case n[1].getStr
@@ -107,7 +107,7 @@ template visitOp*(): untyped =
   else:
     discard
 
-template visitKw*(): untyped = 
+template visitKw*(): untyped {.deprecated: "Used for a old system, not used anymore".} = 
   case n[0].getStr:
   of "echo":
     var s = ""

@@ -5,8 +5,9 @@ import std/[strutils, parseutils]
 type
 
   NativeTypeError* = object of ValueError
+  ## Physical run-time objects
   JlObjKind* = enum NativeInt, NativeStr, NativeBool, NativeFloat, Func, FlagBlock
-  JlObj* = ref object
+  JlObj* = ref object # Move later
     case kind: JlObjKind
     of NativeInt:
       i: int
@@ -21,7 +22,7 @@ type
       address: int
     of FlagBlock:
       flag: string
-
+  ## Bytecode kinds
   BCKind* = enum PUSH, ECHO, SET, GET, JUMP, RETURN, ENTERFUNC, IF, EXIT,
     ADDOP, SUBOP, DIVOP, MULTOP, # + - / *
     EQOP, GTEOP, LTEOP, GTOP, LTOP # == >= <= > <
@@ -41,6 +42,7 @@ proc `$`*(obj: JlObj): string = $(obj[])
 proc newBCAction(kind: BCKind): BC = BC(kind: kind)
 
 proc getAddr*(obj: JlObj): int =
+  ## Get an address from a run-time object
   case obj.kind
   of NativeInt:
     return obj.i
@@ -51,6 +53,7 @@ proc getAddr*(obj: JlObj): int =
 
 
 proc ensureStr*(obj: JlObj): string =
+  ## make sure the result is string
   case obj.kind
   of NativeInt:
     return $(obj.i)
@@ -64,6 +67,7 @@ proc ensureStr*(obj: JlObj): string =
     raise newException(NativeTypeError, "Cannot convert type to String")
 
 proc ensureInt*(obj: JlObj): int =
+  ## make sure the result is int
   case obj.kind
   of NativeInt:
     return obj.i
@@ -76,6 +80,7 @@ proc ensureInt*(obj: JlObj): int =
     raise newException(NativeTypeError, "Cannot convert type to Int")
 
 proc ensureFloat*(obj: JlObj): float =
+  ## make sure the result is float
   case obj.kind
   of NativeInt:
     return obj.i.float
@@ -89,6 +94,7 @@ proc ensureFloat*(obj: JlObj): float =
     raise newException(NativeTypeError, "Cannot convert type to Float")
 
 proc ensureBool*(obj: JlObj): bool =
+  ## make sure the result is bool
   case obj.kind
   of NativeInt:
     return obj.i > 0
@@ -102,9 +108,11 @@ proc ensureBool*(obj: JlObj): bool =
     raise newException(NativeTypeError, "Cannot convert type to Bool")
 
 proc expectKind*(o: JlObj, k: JlObjKind) =
+  ## Expect kind
   if o.kind != k:
     raise newException(NativeTypeError, "Got wrong kind")
 
+# Inititalizers
 proc newNativeStr*(s: string): JlObj = JlObj(kind: NativeStr, s: s)
 
 proc newNativeBool*(b: bool): JlObj = JlObj(kind: NativeBool, b: b)
@@ -113,7 +121,7 @@ proc newNativeInt*(i: int): JlObj = JlObj(kind: NativeInt, i: i)
 
 proc newNativeFloat*(f: float): JlObj = JlObj(kind: NativeFloat, f: f)
 
-
+# Main visitor, creates bytecode
 proc visit(n: JlNode, jlc: var seq[BC]) =
   case n.kind
   of StrLit:
@@ -173,10 +181,12 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
         child.visit(jlc)
 
 proc `$`*(s: seq[BC]): string =
+  ## For debuggign
   for i, b in s:
     result.add $i & ": " & $(b[]) & "\n"
 
 proc makeByteCode*(n: JlNode): seq[BC] =
+  ## Wrapper proc
   var res = newSeq[BC]()
   n.visit(res)
   return res

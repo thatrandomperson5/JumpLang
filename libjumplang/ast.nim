@@ -20,34 +20,42 @@ type
     of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
       list: seq[JlNode]
 
-const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr}
-const litSet = {StrLit, IntLit, BoolLit, FloatLit}
-const exprSet = {OpExpr, KwExpr, CallExpr}
-const valueSet = {Ident} + litSet + exprSet
+const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr} # A set of all the Ast node types that have children
+const litSet = {StrLit, IntLit, BoolLit, FloatLit} # A set of all the Literals
+const exprSet = {OpExpr, KwExpr, CallExpr} # A set of expressions
+const valueSet = {Ident} + litSet + exprSet # A set of all possible value-like ast kinds
 
 proc expectKind*(n: JlNode, k: JlKind) =
+  ## Ensure n is of kind k
   if n.kind != k:
     raise newException(JlKindError, fmt"Got kind {n.kind} but expected {k}")
 
 proc expectKind*(n: JlNode, k: set[JlKind]) =
+  ## Ensure n's kind is one of k
   if n.kind notin k:
     raise newException(JlKindError, fmt"Got kind {n.kind} but expected {k}")
 
 proc getStr*(n: JlNode): string =
+  ## Get a string value from AST
   n.expectKind {Ident, StrLit, Op}
   return n.s
 
 proc getInt*(n: JlNode): int =
+  ## Get a int value from AST
   n.expectKind {IntLit}
   return n.i
 
 proc getBool*(n: JlNode): bool =
+  ## Get a bool value from AST
   n.expectKind {BoolLit}
   return n.b
 
 proc getFloat*(n: JlNode): float =
+  ## Get a float value from AST
   n.expectKind {FloatLit}
   return n.f
+
+# AST Node initializers based on kind
 
 proc newIdent*(s: string): JlNode = JlNode(kind: Ident, s: s)
 
@@ -81,6 +89,8 @@ proc newKwExpr*(): JlNode =
 proc newCallExpr*(): JlNode = 
   return JlNode(kind: CallExpr)
 
+# Basic proc bindings for nodes
+
 proc len*(node: JlNode): int =
   node.expectKind lsSet
   return node.list.len
@@ -98,7 +108,10 @@ iterator items*(n: JlNode): JlNode =
   for item in n.list:
     yield item
 
+# String $ repr of a tree
+
 proc traverseAst(node: JlNode, indent: int, res: var string) =
+  ## Core of the $ proc, is recursive
   for _ in 0..indent:
      res.add "   "
   case node.kind:
@@ -116,48 +129,64 @@ proc traverseAst(node: JlNode, indent: int, res: var string) =
       traverseAst(item, indent+1, res)
 
 proc `$`*(node: JlNode): string = 
+  ## Basic launcher for traverseAst
   result = ""
   traverseAst(node, -1, result)
 
+# Misc
+
 proc expectLen*(node: JlNode, l: int) =
+  ## Ensure the length of a nodes children
   if node.len != l:
     raise newException(JlKindError, fmt"Expected {l} items but got {node.len}")
 
 proc ensureAst*(node: JlNode) = 
-  node.expectKind StmtList
-  for child in node:
-    case child.kind
-    of OpExpr:
-      child.expectLen(2)
-      child[0].expectKind(valueSet)
-      child[1].expectKind(Op)
-      child[2].expectKind(valueSet)
-    of IfStmt:
-      child.expectLen(2)
-      child[0].expectKind(valueSet)
-      child[1].expectKind(StmtList)
-      child[1].ensureAst()
-    of VarDecl:
-      child.expectLen(2)
-      child[0].expectKind(Ident)
-      child[1].expectKind(valueSet)
-    of CallExpr:
-      child.expectLen(2)
-      child[0].expectKind(Ident)
-      child[1].expectKind(ArgList)
-      for sub in child[1]:
+  ## Ensure the validity of a AST tree
+
+  case node.kind
+  of OpExpr:
+      # {VALUE} {OP} {VALUE}
+      node.expectLen(3)
+      node[0].expectKind(valueSet)
+      node[0].ensureAst()
+      node[1].expectKind(Op)
+      node[2].expectKind(valueSet)
+      node[2].ensureAst()
+  of IfStmt:
+      # if {VALUE} then (LIST)
+      node.expectLen(2)
+      node[0].expectKind(valueSet)
+      node[0].ensureAst()
+      node[1].expectKind(StmtList)
+      node[1].ensureAst()
+  of VarDecl:
+      # {IDENT} = {VALUE}
+      node.expectLen(2)
+      node[0].expectKind(Ident)
+      node[1].expectKind(valueSet)
+      node[1].ensureAst()
+  of CallExpr:
+      # {IDENT}(*{VALUE})
+      node.expectLen(2)
+      node[0].expectKind(Ident)
+      node[1].expectKind(ArgList)
+      for sub in node[1]:
         sub.expectKind(valueSet)
-    of KwExpr:
+        sub.ensureAst()    
+  of KwExpr:
       astHandleKeywords()
 
-    of FuncStmt, TemplateStmt:
-      child.expectLen(3)
-      child[0].expectKind(Ident)
-      child[1].expectKind(ArgList)
-      for sub in child[1]:
+  of FuncStmt, TemplateStmt:
+      # {IDENT}(*{IDENT}): (LIST)
+      node.expectLen(3)
+      node[0].expectKind(Ident)
+      node[1].expectKind(ArgList)
+      for sub in node[1]:
         sub.expectKind(Ident)
-      child[2].expectKind(StmtList)
-      child[2].ensureAst()    
-    else: 
-      discard
+      node[2].expectKind(StmtList)
+      node[2].ensureAst()    
+  else: 
+    if node.kind in lsSet:
+      for child in node:
+        child.ensureAst()
 

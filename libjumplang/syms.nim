@@ -1,5 +1,8 @@
 import std/[tables, strformat]
 import ast, keywords
+
+## Checks to make sure the code will not break run-time, currently not connected to any other files
+  
 type
   SemanticError = object of ValueError
   SymKind* = enum NativeSym, VarSym, FuncSym, TemplateSym, ParamSym, FlagSym
@@ -23,6 +26,8 @@ type
   SymContext = ref object
     stack: seq[SymTable]
 
+# Misc utils
+
 proc newSymTable*(name: string, scope: int, kind: SymTableKind): SymTable = 
   return SymTable(name: name, scope: scope, kind: kind)
 
@@ -42,12 +47,15 @@ proc `$`*(t: SymTable): string =
     result.add "    " & key & ": " & $value & "\n"
 
 proc enter(s: var SymContext, n: SymTable) =
+  ## Enter a scope
   s.stack.add n
 
 proc exit(s: var SymContext) =
+  ## Exit current scope
   discard s.stack.pop
 
 proc definedIdent(s: SymContext, i: string, acceptFlags=false): bool =
+  ## Check if an identifier exisits in any scope
   for n in 1..s.stack.len:
     let current = s.stack[^n]
     if i in current.t:
@@ -57,6 +65,7 @@ proc definedIdent(s: SymContext, i: string, acceptFlags=false): bool =
   return false
 
 proc funcInScope(s: SymContext): bool =
+  ## Util to make sure you are inside a function scope
   for n in 1..s.stack.len:
     let current = s.stack[^n]
     if current.kind == stkFunc:
@@ -65,11 +74,13 @@ proc funcInScope(s: SymContext): bool =
 
 
 proc inScope(s: SymContext, i: string): bool =
+  ## Check if a ident is in the current scope, for all scopes see "definedIdent"
   if i in s.v.t:
     return true
   return false
 
 proc raiseSemanticError(b: bool, name: string, t: int) =
+  ## Raise sym error
   if not b:
     if t == 0:
       raise newException(SemanticError, fmt"Undeclared Identifier {name}!")
@@ -78,11 +89,12 @@ proc raiseSemanticError(b: bool, name: string, t: int) =
 
 
 proc walkSyms(n: JlNode, s: var SymContext) =
+  ## Main semantic checker
   case n.kind:
-  of VarDecl:
+  of VarDecl: # Add a var sym
     let i = n[0].getStr()
-    s[i] = Symbol(name: i, kind: VarSym)
-  of FuncStmt:
+    s[i] = Symbol(name: i, kind: VarSym) 
+  of FuncStmt: # Add a func sym and enter a new scope
     let i = n[0].getStr()
     raiseSemanticError(not s.inScope(i), i, 1)
     var ns = Symbol(name: i, kind: FuncSym)
@@ -100,14 +112,14 @@ proc walkSyms(n: JlNode, s: var SymContext) =
     when defined(jlDebugSym):
       echo s.v
     s.exit()
-  of TemplateStmt:
+  of TemplateStmt: # Unused right now
     let i = n[0].getStr()
     raiseSemanticError(not s.inScope(i), i, 1)
     s[i] = Symbol(name: i, kind: TemplateSym)
 
-  of Ident:
+  of Ident: # Make sure identifier exists
     definedIdent(s, n.getStr()).raiseSemanticError(n.getStr, 0)
-  of CallExpr:
+  of CallExpr: # Make sure proper argument amount
     let i = n[0].getStr()    
     definedIdent(s, i).raiseSemanticError(i, 0)    
     let expected = s.v[i].params.len
@@ -123,12 +135,14 @@ proc walkSyms(n: JlNode, s: var SymContext) =
       for child in n:
         walkSyms(child, s)
 
+# Unused, will be used later for system modules
 proc newNativeSym(name: string): Symbol = Symbol(kind: NativeSym, name: name)
 
 proc addDefaults(s: var SymTable) =
   discard
 
 proc ensureSemantics*(n: JlNode) =
+  ## Light wrapper with debug of walkSyms
   var sy = newSymTable("global", 0, stkGlobal)
   sy.addDefaults()
   let l = @[sy]

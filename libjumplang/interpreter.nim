@@ -1,14 +1,15 @@
-import std/tables, ast, keywords, bytecode
+import std/tables, bytecode
 type
   ArType* = enum Global, Function, Block
 
 
   ActivationRecord = ref object
+    ## A record to store run-time variables
     name*: string
     typ*: ArType
     retr: int
     lvl: int
-    data: Table[string, JlObj]
+    data: Table[string, JlObj] # Change later to Table[string, address]
 
   CallStack = seq[ActivationRecord]
 
@@ -16,7 +17,7 @@ type
     stack: CallStack
     code: seq[BC]
     pos: int
-    memstack: seq[JlObj]
+    memstack: seq[JlObj] # Free, non-bound memory, consumable
     
   InterpreterResult* = ref object
     failed*: bool
@@ -24,6 +25,8 @@ type
     stack*: CallStack
 
 proc `$`*(ar: ActivationRecord): string =
+  ## Record printer
+
   result.add "Name: " & ar.name & "\n"
   result.add "Type: " & $(ar.typ) & "\n"
   result.add "Lvl: " & $(ar.lvl) & "\n"
@@ -32,11 +35,14 @@ proc `$`*(ar: ActivationRecord): string =
     result.add key & ": " & $(value[]) & "\n"
 
 proc `[]`(i: Interpreter, key: string): JlObj = 
+  ## Seek a variable through all available scopes.
   for index in 1..i.stack.len:
     let item = i.stack[^index]
     if key in item.data:
       return item.data[key]
   raise newException(CatchableError, "Interpreter failure, symbol checks have failed.")
+
+# Misc utils
 
 proc v(i: Interpreter): ActivationRecord = i.stack[^1]
 
@@ -54,11 +60,12 @@ when defined(js):
 
 
 proc run(i: var Interpreter) =
+  ## Main runner
   let current = i.code[i.pos]
   case current.kind
-  of PUSH:
+  of PUSH: # PUSH an object
     i.madd current.value
-  of ECHO:
+  of ECHO: # echo a ensured string
     var s = ""
     for _ in 1..current.amount:
       s = i.mpop.ensureStr() & " " & s
@@ -66,17 +73,17 @@ proc run(i: var Interpreter) =
       output.add s & "\n"
     else:
       echo s
-  of SET:
+  of SET: # Set a variable (from memstack)
     i[current.name] = i.mpop
-  of GET:
+  of GET: # Get a variable (to memstack)
     i.madd i[current.name]
-  of ENTERFUNC:
+  of ENTERFUNC: # Add a function record
     var ar = ActivationRecord(name: current.name, typ: Function, lvl: i.v.lvl+1, retr: i.pos+1)
     i.stack.add ar
 
-  of JUMP:
+  of JUMP: # Jump to got address (from memstack)
     i.pos = i.mpop.getAddr
-  of RETURN:
+  of RETURN: # Return out of function, add value to memstack
     var ar = i.stack.pop
     while true:
       if ar.typ == Function:
@@ -86,11 +93,11 @@ proc run(i: var Interpreter) =
         raise newException(CatchableError, "Interpreter failure, symbol checks have failed.")
       ar = i.stack.pop
 
-  of EXIT:
+  of EXIT: # Leave a single scope
     when defined(jlDebugIt):
       echo $(i.v)
     discard i.stack.pop
-  of IF:
+  of IF: # If ensured bool is false jump to end of block
     if not i.mpop.ensureBool:
       i.pos = current.amount
     else:
@@ -130,6 +137,7 @@ proc run(i: var Interpreter) =
 
 
 proc interpret*(code: seq[BC], name: string): InterpreterResult =
+  ## Runner setup and error handling
   when defined(js):
     output = ""
 

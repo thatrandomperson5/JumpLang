@@ -101,6 +101,7 @@ type
 
 
 proc getMultiFileInfo(data: string, ls: (int, int)): MultiFileInfo =
+  ## Extract line, col and snippet data from a string.
   var linecount = 1
   var colcount = 1
   var total = 0
@@ -122,6 +123,7 @@ proc getMultiFileInfo(data: string, ls: (int, int)): MultiFileInfo =
     total += 1
 
 proc check(m: MatchResult, data: string, fname="<Unnamed>") =
+  ## Make syntax error if parse result is not ok 
   if not m.ok:
     let info = getMultiFileInfo(data, (m.matchLen, m.matchMax))
     var msg = "Syntax Error in " & fname & " (" & $(info.line)
@@ -130,6 +132,7 @@ proc check(m: MatchResult, data: string, fname="<Unnamed>") =
     raise newException(JlSyntaxError, msg)
 
 proc parseFile*(f: string): JlNode =
+  ## Parse file wrapper
   var ac = newAdoptionCenter[JlNode]()
   let filedata = f.readFile
   when defined(windows) or defined(posix):
@@ -140,6 +143,7 @@ proc parseFile*(f: string): JlNode =
   return ac[0]
 
 proc parse*(d: string): JlNode =
+  ## Parse string wrapper
   var ac = newAdoptionCenter[JlNode]()
   check parser.match(d, ac), d
   ac[0].ensureAst()

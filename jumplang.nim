@@ -1,12 +1,16 @@
-import libjumplang/[parser, ast, syms, bytecode, interpreter]
+import libjumplang/[parser, syms, bytecode, interpreter]
 
 import std/terminal
 
-type JlConfig = ref object
+## The cli for jumplang, for the core look at ./libjumplang
+
+type JlConfig = ref object 
+  ## A config type for cli args
   checkSemantics: bool
 
 
 proc printTrace(res: InterpreterResult): string =
+  ## Basic trace construction for interpreter results
   for item in res.stack:
     result.add "In "
     case item.typ
@@ -21,23 +25,26 @@ proc printTrace(res: InterpreterResult): string =
 
 
 proc interpretFile(filename: string, conf: JlConfig) =
-  let a = filename.parseFile
-  echo a
-  if conf.checkSemantics:
+  ## Interpret a file given a filename
+
+  let a = filename.parseFile # Parse the file
+  # echo a
+  if conf.checkSemantics: # Check semantics
     a.ensureSemantics()
   let bytecode = a.makeByteCode()
   when defined(jlDebugIt):
     echo bytecode
   let res = bytecode.interpret(filename)
   if res.failed:
-    styledEcho fgRed, "New Exception!\n", fgDefault, res.printTrace()
+    styledEcho fgRed, "New Exception!\n", fgDefault, res.printTrace() # Prin the trace on error
 
-proc jumplang(checkSemantics=true, args: seq[string]) =
+proc jumplang(checkSemantics=true, args: seq[string]) = 
+  ## Convert cligen arguments to the JlConfig
   let conf = JlConfig(checkSemantics: checkSemantics)
   for filename in args:
     interpretFile(filename, conf)
 
 
-when isMainModule:
+when isMainModule: # Dispatch
   import cligen
   dispatch jumplang
