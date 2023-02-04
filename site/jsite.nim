@@ -100,7 +100,7 @@ proc createDom(): VNode =
         (StyleAttr.display, "flex".kstring),
         (StyleAttr.alignItems, "center".kstring)
       )):
-        b:
+        bold:
           text "Examples:&nbsp;&nbsp;"
         select(name="Examples", onchange=fillExample):
           for name in exampleOpts:
