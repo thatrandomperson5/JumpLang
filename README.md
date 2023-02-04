@@ -3,7 +3,7 @@ Just a test interpreter made in nim
 
 
 # Use it!
-When i post a release you can download the binary for your OS **OR** run the web interpreter [here](https://thatrandomperson5.github.io/JumpLang/)
+Download the binary for your OS [here](https://github.com/thatrandomperson5/JumpLang/releases) **OR** run the web interpreter [here](https://thatrandomperson5.github.io/JumpLang/)
 
 # CLI
 ```
@@ -35,6 +35,10 @@ echo true # bool
 ```py
 echo "str" # Str
 ```
+```py
+echo 0.567 # float
+```
+
 ## Funcs
 ```py
 func name(arg1, arg2):
