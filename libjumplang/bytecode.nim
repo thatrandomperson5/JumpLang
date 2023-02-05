@@ -6,9 +6,9 @@ type
 
   NativeTypeError* = object of ValueError
   ## Physical run-time objects
-  JlObjKind* = enum NativeInt, NativeStr, NativeBool, NativeFloat, Func, FlagBlock
+  JlObjKind* = enum NativeInt, NativeStr, NativeBool, NativeFloat, Func, NativeList
   JlObj* = ref object # Move later
-    case kind: JlObjKind
+    case kind*: JlObjKind
     of NativeInt:
       i: int
     of NativeStr:
@@ -17,20 +17,21 @@ type
       b: bool
     of NativeFloat:
       f: float
+    of NativeList:
+      objects: seq[JlObj]
     of Func:
       name: string
       address: int
-    of FlagBlock:
-      flag: string
   ## Bytecode kinds
   BCKind* = enum PUSH, ECHO, SET, GET, JUMP, RETURN, ENTERFUNC, IF, EXIT,
     ADDOP, SUBOP, DIVOP, MULTOP, # + - / *
-    EQOP, GTEOP, LTEOP, GTOP, LTOP # == >= <= > <
+    EQOP, GTEOP, LTEOP, GTOP, LTOP, # == >= <= > <
+    MKLIST # Get at index
   BC* = ref object
     case kind*: BCKind
     of PUSH:
       value*: JlObj
-    of ECHO, IF:
+    of ECHO, IF, MKLIST:
       amount*: int
     of SET, GET, ENTERFUNC:
       name*: string
@@ -63,6 +64,15 @@ proc ensureStr*(obj: JlObj): string =
     return $(obj.b)
   of NativeFloat:
     return $(obj.f)
+  of NativeList:
+    if obj.objects.len == 0:
+      return "[]"
+    result = "["
+    result.add obj.objects[0].ensureStr()
+    if obj.objects.len > 1:
+      for o in obj.objects[1..^1]:
+        result.add ", " & o.ensureStr()
+    result.add "]"
   else:
     raise newException(NativeTypeError, "Cannot convert type to String")
 
@@ -121,6 +131,8 @@ proc newNativeInt*(i: int): JlObj = JlObj(kind: NativeInt, i: i)
 
 proc newNativeFloat*(f: float): JlObj = JlObj(kind: NativeFloat, f: f)
 
+proc newNativeList*(ls: seq[JlObj]): JlObj = JlObj(kind: NativeList, objects: ls)
+
 # Main visitor, creates bytecode
 proc visit(n: JlNode, jlc: var seq[BC]) =
   case n.kind
@@ -132,6 +144,9 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
     jlc.add(BC(kind: PUSH, value: newNativeFloat(n.getFloat)))
   of BoolLit:
     jlc.add(BC(kind: PUSH, value: newNativeBool(n.getBool)))
+  of BracketConstruct:
+    n[0].visit(jlc)
+    jlc.add(BC(kind: MKLIST, amount: n[0].len))
   of VarDecl:
     n[1].visit(jlc)
     jlc.add(BC(kind: SET, name: n[0].getStr))   
@@ -162,6 +177,10 @@ proc visit(n: JlNode, jlc: var seq[BC]) =
     jlc.add(BC(kind: GET, name: name))  
     jlc.add(BC(kind: ENTERFUNC, name: name))
     jlc.add(newBcAction(JUMP))
+  of BracketExpr:
+    # n[1].visit(jlc)
+    # n[0].visit(jlc)
+    jlc.add(BC(kind: PUSH, value: newNativeStr("Not implemented"))) # First as native function then as class func
   of IfStmt:
     # {COND} IF {BODY} EXIT
     n[0].visit(jlc)

@@ -5,7 +5,7 @@ type
   JlKindError = object of ValueError
 
   JlKind* = enum OpExpr, Ident, StrLit, IntLit, BoolLit, FloatLit, KwExpr, StmtList, VarDecl, ArgList, CallExpr,
-           IfStmt, FuncStmt, TemplateStmt, Op
+           IfStmt, FuncStmt, TemplateStmt, BracketConstruct, Op, BracketExpr
 
   JlNode* = ref object
     case kind*: JlKind
@@ -17,12 +17,12 @@ type
       f: float
     of BoolLit:
       b: bool
-    of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
+    of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, BracketConstruct, BracketExpr:
       list: seq[JlNode]
 
-const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr} # A set of all the Ast node types that have children
-const litSet = {StrLit, IntLit, BoolLit, FloatLit} # A set of all the Literals
-const exprSet = {OpExpr, KwExpr, CallExpr} # A set of expressions
+const lsSet* = {StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, BracketConstruct, BracketExpr} # A set of all the Ast node types that have children
+const litSet = {StrLit, IntLit, BoolLit, FloatLit, BracketConstruct} # A set of all the Literals and Constructs
+const exprSet = {OpExpr, KwExpr, CallExpr, BracketExpr} # A set of expressions
 const valueSet = {Ident} + litSet + exprSet # A set of all possible value-like ast kinds
 
 proc expectKind*(n: JlNode, k: JlKind) =
@@ -61,6 +61,8 @@ proc newIdent*(s: string): JlNode = JlNode(kind: Ident, s: s)
 
 proc newArgList*(): JlNode = JlNode(kind: ArgList)
 
+proc newBracketConstruct*(): JlNode = JlNode(kind: BracketConstruct)
+
 proc newIfStmt*(): JlNode = JlNode(kind: IfStmt)
 
 proc newFuncStmt*(): JlNode = JlNode(kind: FuncStmt)
@@ -82,6 +84,8 @@ proc newIntLit*(i: int): JlNode = JlNode(kind: IntLit, i: i)
 proc newFloatLit*(f: float): JlNode = JlNode(kind: FloatLit, f: f)
 
 proc newBoolLit*(b: bool): JlNode = JlNode(kind: BoolLit, b: b)
+
+proc newBracketExpr*(): JlNode = JlNode(kind: BracketExpr)                                           
 
 proc newKwExpr*(): JlNode = 
   return JlNode(kind: KwExpr)
@@ -123,7 +127,7 @@ proc traverseAst(node: JlNode, indent: int, res: var string) =
     res.add "FloatLit: " & $(node.f) & "\n"
   of BoolLit:
     res.add "BoolLit: " & $(node.b) & "\n"
-  of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr:
+  of StmtList, ArgList, IfStmt, VarDecl, KwExpr, CallExpr, FuncStmt, TemplateStmt, OpExpr, BracketConstruct, BracketExpr:
     res.add $(node.kind) & ": \n"
     for item in node:
       traverseAst(item, indent+1, res)
@@ -165,7 +169,7 @@ proc ensureAst*(node: JlNode) =
       node[0].expectKind(Ident)
       node[1].expectKind(valueSet)
       node[1].ensureAst()
-  of CallExpr:
+  of CallExpr, BracketExpr:
       # {IDENT}(*{VALUE})
       node.expectLen(2)
       node[0].expectKind(Ident)
@@ -175,6 +179,10 @@ proc ensureAst*(node: JlNode) =
         sub.ensureAst()    
   of KwExpr:
       astHandleKeywords()
+  of BracketConstruct:
+    node.expectLen(1)
+    node[0].expectKind(ArgList)
+    node[0].ensureAst()
 
   of FuncStmt, TemplateStmt:
       # {IDENT}(*{IDENT}): (LIST)

@@ -1,0 +1,5 @@
+# Iteration example
+
+lst = [1, 2.3, "4"]
+echo lst
+echo lst[1]

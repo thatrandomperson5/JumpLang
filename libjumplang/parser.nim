@@ -30,6 +30,11 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
     var vd = newVarDecl()
     adoptCycle(ac, vd, 2)
 
+  # Constructs
+  BracketConstruct <- '[' * ArgList * ']':
+    var bc = newBracketConstruct()
+    adoptCycle(ac, bc, 1)
+
   # Literals
   StrLit <- '"' * >(*(1-{'\n', '\t', '"'})) * '"':
     ac.add newStrLit($1)
@@ -44,7 +49,7 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
       ac.add newBoolLit(true)
     else:
       ac.add newBoolLit(false)
-  Lit <- W * (BoolLit | StrLit | FloatLit | IntLit) * W
+  Lit <- W * (BracketConstruct | BoolLit | StrLit | FloatLit | IntLit) * W # Lits and constructs
   Comment <- W * '#' * *(1 - {'\n', '\r'})
 
   # Exprs
@@ -63,10 +68,14 @@ let parser = peg("file", ac: AdoptionCenter[JlNode]):
     var kwe = newCallExpr()
     adoptCycle(ac, kwe, 2)
 
+  BracketExpr <- '[' * ArgList * ']':
+    var kwe = newBracketExpr()
+    adoptCycle(ac, kwe, 2)
+
   KwExpr <- +Blank * FArgList:
     var kwe = newKwExpr()
     adoptCycle(ac, kwe, 2)
-  PrimarySuffix <- CallExpr | KwExpr
+  PrimarySuffix <- CallExpr | BracketExpr | KwExpr
 
   # StandaloneStmt
   IfStmt <- ib.Line("if" * +Blank * Expr * W * ':' * ?Comment) * ib.Block(StmtList):

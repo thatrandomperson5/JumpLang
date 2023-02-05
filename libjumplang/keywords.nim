@@ -42,8 +42,7 @@ template bcKw*(): untyped =
   let i = n[0].getStr()
   case i:
   of "echo": # ECHO {argument amount}
-    for child in n[1]:
-      child.visit(jlc)
+    n[1].visit(jlc)
     jlc.add(BC(kind: ECHO, amount: n[1].len))
   of "jump": # JUMP
     n[1].visit(jlc)
@@ -81,6 +80,21 @@ template bcOp*(): untyped = # Operators
     jlc.add newBCAction(EQOP)
   else:
     discard
+
+
+template makeNumberOpHandle*(operation: untyped): untyped =
+  let rev = [i.mpop, i.mpop]
+  if rev[1].kind == NativeFloat:
+    i.madd newNativeFloat(`operation`(rev[1].ensureFloat, rev[0].ensureFloat)) 
+  elif rev[1].kind == NativeInt:
+    i.madd newNativeInt(`operation`(rev[1].ensureInt, rev[0].ensureInt)) 
+
+template makeNumberBoolHandle*(operation: untyped): untyped =
+  let rev = [i.mpop, i.mpop]
+  if rev[1].kind == NativeFloat:
+    i.madd newNativeBool(`operation`(rev[1].ensureFloat, rev[0].ensureFloat)) 
+  elif rev[1].kind == NativeInt:
+    i.madd newNativeBool(`operation`(rev[1].ensureInt, rev[0].ensureInt)) 
 
 template visitOp*(): untyped {.deprecated: "Used for a old system, not used anymore".} = 
   let a = i.visit(n[0])

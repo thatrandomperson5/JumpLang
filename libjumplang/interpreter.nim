@@ -1,4 +1,4 @@
-import std/tables, bytecode
+import std/tables, bytecode, keywords
 type
   ArType* = enum Global, Function, Block
 
@@ -65,6 +65,13 @@ proc run(i: var Interpreter) =
   case current.kind
   of PUSH: # PUSH an object
     i.madd current.value
+  of MKLIST: # Make a list from stack
+    var r = newSeq[JlObj](0)
+    if current.amount > 0:
+      for _ in 1..current.amount:
+        r.insert(i.mpop)
+    i.madd newNativeList(r)
+
   of ECHO: # echo a ensured string
     var s = ""
     for _ in 1..current.amount:
@@ -77,6 +84,7 @@ proc run(i: var Interpreter) =
     i[current.name] = i.mpop
   of GET: # Get a variable (to memstack)
     i.madd i[current.name]
+    
   of ENTERFUNC: # Add a function record
     var ar = ActivationRecord(name: current.name, typ: Function, lvl: i.v.lvl+1, retr: i.pos+1)
     i.stack.add ar
@@ -106,29 +114,25 @@ proc run(i: var Interpreter) =
 
   # Start ops   
   of ADDOP:
-    i.madd newNativeFloat(i.mpop.ensureFloat + i.mpop.ensureFloat)
+    makeNumberOpHandle(`+`)
   of SUBOP:
-    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
-    i.madd newNativeFloat(rev[1] - rev[0])
+    makeNumberOpHandle(`-`)
   of MULTOP:
-    i.madd newNativeFloat(i.mpop.ensureFloat * i.mpop.ensureFloat)
+    makeNumberOpHandle(`*`)
   of DIVOP:
     let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
     i.madd newNativeFloat(rev[1] / rev[0])
   of EQOP:
     i.madd newNativeBool(i.mpop.ensureBool == i.mpop.ensureBool)
   of GTEOP:
-    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
-    i.madd newNativeBool(rev[1] >= rev[0])
+    makeNumberBoolHandle(`>=`)
   of LTEOP:
-    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
-    i.madd newNativeBool(rev[1] <= rev[0])
+    makeNumberBoolHandle(`<=`)
   of GTOP:
-    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
-    i.madd newNativeBool(rev[1] >= rev[0])
+    makeNumberBoolHandle(`>`)
   of LTOP:
-    let rev = [i.mpop.ensureFloat, i.mpop.ensureFloat]
-    i.madd newNativeBool(rev[1] < rev[0])
+    makeNumberBoolHandle(`<`)
+
   i.pos += 1
   when defined(jlDebugIt):
     echo i.pos, ": ", i.memstack
