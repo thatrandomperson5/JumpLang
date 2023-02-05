@@ -4,11 +4,6 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-  
-permissions:
-  actions: read
-  contents: read
-  security-events: write
     
 jobs:
   linux:
@@ -28,7 +23,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: jumplang.exe
+          files: ./jumplang
+          tag_name: 0.0.2
           
   windows:
     runs-on: windows-latest
@@ -47,5 +43,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: jumplang.exe
+          files: ./jumplang.exe
           tag_name: 0.0.2
